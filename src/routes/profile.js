@@ -23,14 +23,12 @@ profileRouter.patch("/edit", authCheck, (req, res) => {
 
     loggedInUser.save();
 
-    return res
-      .status(200)
-      .json({
-        message: `Details of ${loogedInUser.firstName} updated Successfully`,
-        data: loggedInUser,
-        code: "success",
-        success: true,
-      });
+    return res.status(200).json({
+      message: `Details of ${loggedInUser.firstName} updated Successfully`,
+      data: loggedInUser,
+      code: "success",
+      success: true,
+    });
   } catch (error) {
     res
       .status(400)
@@ -38,4 +36,19 @@ profileRouter.patch("/edit", authCheck, (req, res) => {
   }
 });
 
+profileRouter.get("/profile", authCheck, (req, res) => {
+  try {
+    const loggedInUser = req.user;
+    return res.status(200).json({
+      message: `Profile Details fetched successfully`,
+      data: loggedInUser,
+      code: "success",
+      success: true,
+    });
+  } catch (error) {
+    res
+      .status(400)
+      .json({ message: error.message, code: "failure", success: false });
+  }
+});
 module.exports = profileRouter;
