@@ -47,6 +47,18 @@ const userSchema = new mongoose.Schema(
         }
       },
     },
+    photoUrl: {
+      type: String,
+      default:
+        "https://media.licdn.com/dms/image/v2/D5603AQHu-RM0vafEuA/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1706523598977?e=1753920000&v=beta&t=D6MaJMEe_oqHh5kiRY8tZIzo_GuzZrG_0ejFaBdvSLU",
+    },
+    about: {
+      type: String,
+      default: "This is the default about the user",
+    },
+    skills: {
+      type: [String],
+    },
   },
   { timestamps: true }
 );
