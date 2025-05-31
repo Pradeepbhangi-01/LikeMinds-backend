@@ -10,19 +10,18 @@
 
 - PATCH /profile/edit
 - GET /profile/view
-- PATCH /prfile/password
+- PATCH /profile/password
 
 - status ignore, interested, accepted, rejected
 
 ### connectionRequestRouter
 
-- POST /request/send/interested/:userId
-- POST /request/send/ignored/:userId
-- POST /request/review/accepted/:reviewId
-- POSt /request/review/rejected/:reviewId
+- POST /request/send/:status/:userId --> ignored,interested
+
+- POST /request/review/:status/:reviewId -->rejected,accepted
 
 ### userRouter
 
-- GET /user/connections
 - GET /user/request/received
+- GET /user/connections
 - GET /user/feed - gets you the profile of other users

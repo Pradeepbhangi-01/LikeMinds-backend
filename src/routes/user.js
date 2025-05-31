@@ -2,65 +2,70 @@ const express = require("express");
 const { authCheck } = require("../middlewares/auth");
 const { userUpdateValidation } = require("../utils/validation");
 const User = require("../models/user");
+const ConnectionRequest = require("../models/connectionRequest");
 const userRouter = express.Router();
 
-//Get the Single User
-userRouter.get("/:emailId", authCheck, async (req, res) => {
+const SAFE_USER_DATA = "firstName lastName age gender photoUrl about skills";
+
+// Get the pending connection request for the logged in user
+userRouter.get("/requests/received", authCheck, async (req, res) => {
   try {
-    const emailId = req.params.emailId;
-    console.log("emailId ", emailId);
-
-    const user = await User.find({ emailId });
-
-    if (user.length === 0) {
-      res.status(400).json({ message: "User Not Found" });
-    } else {
-      res.status(200).json({ message: "Found the results", user });
-    }
-  } catch (error) {
-    console.log(error);
-    res.status(400).send("User not found");
-  }
-});
-
-userRouter.patch("/", authCheck, async (req, res) => {
-  try {
-    const isUpdateAllowed = userUpdateValidation(req);
-
     const loggedInUser = req.user;
 
-    console.log(loggedInUser);
-    if (!isUpdateAllowed) {
-      throw new Error("Update is not allowed, check the update fields");
-    }
-    Object.keys(req.body).forEach((key) => (loggedInUser[key] = req.body[key]));
+    const connectionRequests = await ConnectionRequest.find({
+      receiverUserId: loggedInUser._id,
+      status: "interested",
+    }).populate(
+      "senderUserId",
+      "firstName lastName age gender photoUrl about skills"
+    );
+    // }).populate("senderUserId", ["firstName", "lastName"]);
 
-    console.log(loggedInUser);
-    await loggedInUser.save();
-
-    return res
-      .status(200)
-      .json({ message: "User updated successfully", data: loggedInUser });
+    res.status(200).json({
+      message: "Details fetched successfully",
+      data: connectionRequests,
+      code: "success",
+      success: true,
+    });
   } catch (error) {
-    console.log(error);
-    res.status(400).send("Update is not allowed, check the update fields");
+    res
+      .status(400)
+      .json({ message: error.message, code: "failure", success: false });
   }
 });
 
-userRouter.delete("/", async (req, res) => {
+userRouter.get("/connections", authCheck, async (req, res) => {
   try {
-    const emailId = req.body.emailId;
+    const loggedInUser = req.user;
 
-    const response = await User.deleteOne({ emailId });
+    const myConnections = await ConnectionRequest.find({
+      $or: [
+        {
+          senderUserId: loggedInUser._id,
+          status: "accepted",
+        },
+        { receiverUserId: loggedInUser._id, status: "accepted" },
+      ],
+    })
+      .populate("senderUserId", SAFE_USER_DATA)
+      .populate("receiverUserId", SAFE_USER_DATA);
+    const filteredData = myConnections.map((row) => {
+      if (row.senderUserId._id.toString() == loggedInUser._id.toString()) {
+        return row.receiverUserId;
+      }
+      return row.senderUserId;
+    });
 
-    if (response) {
-      res.status(200).json({ message: "Deleted Successfully" });
-    } else {
-      res.status(400).json({ message: "User Not Found" });
-    }
+    res.status(200).json({
+      message: "Connection fetcehd successfully",
+      data: filteredData,
+      code: "success",
+      success: true,
+    });
   } catch (error) {
-    console.log(error);
-    res.status(400).send("Unable to delete the User");
+    res
+      .status(400)
+      .json({ message: error.message, code: "failure", success: false });
   }
 });
 

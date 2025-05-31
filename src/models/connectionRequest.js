@@ -1,13 +1,15 @@
 const mongoose = require("mongoose");
 
-const connectionRequestSchema = new mongoose.Schema(
+const ConnectionRequestSchema = new mongoose.Schema(
   {
     senderUserId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
     receiverUserId: {
       type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       reqired: true,
     },
     status: {
@@ -23,9 +25,9 @@ const connectionRequestSchema = new mongoose.Schema(
 );
 
 // Adding the compound index
-connectionRequestSchema.index({ senderUserId: 1, receiverUserId: 1 });
+ConnectionRequestSchema.index({ senderUserId: 1, receiverUserId: 1 });
 
-connectionRequestSchema.pre("save", function (next) {
+ConnectionRequestSchema.pre("save", function (next) {
   const connectRequest = this;
 
   if (connectRequest.senderUserId.equals(connectRequest.receiverUserId)) {
@@ -35,4 +37,4 @@ connectionRequestSchema.pre("save", function (next) {
   next();
 });
 
-module.exports = mongoose.model("ConnectionRequest", connectionRequestSchema);
+module.exports = mongoose.model("ConnectionRequest", ConnectionRequestSchema);
